@@ -24,7 +24,9 @@ export const A = {
   callAccepted: 'comm.callAccepted',
   callEnded: 'comm.callEnded',
   callOutgoing: 'comm.callOutgoing',
-  secretShared: 'comm.secretShared', // z.B. Kennwort/BitLocker-Key übermittelt
+  secretShared: 'comm.secretShared', // z.B. Kennwort/BitLocker-Key übermittelt (detail = Kanal)
+  remoteConsent: 'comm.remoteConsent', // Einverständnis für Fernzugriff eingeholt
+  userInformed: 'comm.userInformed', // Benutzer über Lösung/Status informiert
   // Active Directory
   adUnlock: 'ad.unlock',
   adPasswordReset: 'ad.passwordReset',
