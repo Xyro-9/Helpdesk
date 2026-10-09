@@ -117,7 +117,7 @@ export function renewDhcp(w: World, ep: Endpoint, adapter: NetAdapter): { ok: bo
   return { ok: true, message: 'ok' }
 }
 
-export function releaseDhcp(w: World, ep: Endpoint, adapter: NetAdapter) {
+export function releaseDhcp(w: World, _ep: Endpoint, adapter: NetAdapter) {
   if (!adapter.dhcp) return
   const scope = w.infra.dhcpScopes.find((s) => s.id === adapter.network)
   if (scope) scope.leases = scope.leases.filter((l) => l.mac !== adapter.mac)
@@ -238,7 +238,11 @@ function dnsServerWorks(w: World, ep: Endpoint, server: string): 'internal' | 'p
   return 'dead'
 }
 
-export function resolveName(w: World, ep: Endpoint, name: string, opts: { useCache?: boolean; server?: string } = {}): ResolveResult {
+/**
+ * Namensauflösung wie Windows: hosts-Datei → DNS-Client-Cache → DNS-Server.
+ * Reine Lesefunktion – nur mit writeCache: true (innerhalb von updateWorld) wird der Cache befüllt.
+ */
+export function resolveName(w: World, ep: Endpoint, name: string, opts: { useCache?: boolean; server?: string; writeCache?: boolean } = {}): ResolveResult {
   const host = name.trim().toLowerCase().replace(/^https?:\/\//, '').split(/[/:]/)[0]
   if (!host) return { ok: false, error: 'Kein Name angegeben.' }
   if (isValidIp(host)) return { ok: true, ip: host, source: 'literal', fqdn: host }
@@ -261,7 +265,7 @@ export function resolveName(w: World, ep: Endpoint, name: string, opts: { useCac
     if (kind === 'internal') {
       const int = lookupInternal(w, host)
       if (int.ip) {
-        if (useCache) ep.dnsCache[host] = int.ip
+        if (opts.writeCache && isServiceRunning(ep, 'Dnscache')) ep.dnsCache[host] = int.ip
         return { ok: true, ip: int.ip, fqdn: int.fqdn, server, source: 'dns', aliases: int.aliases }
       }
       if (host.endsWith('.musterwerk.local') || !host.includes('.')) return { ok: false, server, error: `*** ${server} wurde ${host} nicht gefunden: Non-existent domain` }
@@ -270,7 +274,7 @@ export function resolveName(w: World, ep: Endpoint, name: string, opts: { useCac
     if (kind === 'public' && (host.endsWith('.musterwerk.local') || !host.includes('.'))) return { ok: false, server, error: `*** ${server} wurde ${host} nicht gefunden: Non-existent domain` }
     const ext = INTERNET_HOSTS[host]
     if (ext) {
-      if (useCache) ep.dnsCache[host] = ext
+      if (opts.writeCache && isServiceRunning(ep, 'Dnscache')) ep.dnsCache[host] = ext
       return { ok: true, ip: ext, fqdn: host, server, source: 'dns' }
     }
     return { ok: false, server, error: `*** ${server} wurde ${host} nicht gefunden: Non-existent domain` }

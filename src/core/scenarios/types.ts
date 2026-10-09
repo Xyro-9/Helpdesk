@@ -42,6 +42,8 @@ export interface ScenarioCaller {
   unresolvedReply?: string
   /** Zusatz für KI-Modus: Persönlichkeit, Wissensstand */
   persona?: string
+  /** Abweichende Antwort auf die Identitätsfrage (Social-Engineering-Szenarien: falsche Daten!) */
+  identityAnswer?: string
 }
 
 export interface Scenario {
