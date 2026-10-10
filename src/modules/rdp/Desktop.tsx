@@ -25,6 +25,8 @@ type DlgEntry =
   | { id: number; kind: 'prompt'; o: { title: string; label: string; value?: string; placeholder?: string }; resolve: (v: string | null) => void }
   | { id: number; kind: 'uac'; program: string; resolve: (ok: boolean) => void }
 
+type NoId<T> = T extends unknown ? Omit<T, 'id'> : never
+
 let dlgSeq = 0
 
 export function Desktop({ sessionKey, host, active }: { sessionKey: string; host: string; active: boolean }) {
@@ -50,7 +52,7 @@ function DesktopInner({ sessionKey, host, active, ep }: { sessionKey: string; ho
   const activeRef = useRef(active)
   activeRef.current = active
 
-  const push = useCallback((d: Omit<DlgEntry, 'id'>) => setDialogs((l) => [...l, { ...d, id: ++dlgSeq } as DlgEntry]), [])
+  const push = useCallback((d: NoId<DlgEntry>) => setDialogs((l) => [...l, { ...d, id: ++dlgSeq } as DlgEntry]), [])
   const pop = (id: number) => setDialogs((l) => l.filter((d) => d.id !== id))
 
   const api = useMemo<DeskApi>(() => {
@@ -235,7 +237,7 @@ function DesktopInner({ sessionKey, host, active, ep }: { sessionKey: string; ho
 
         {/* Einverständnis-Hinweis */}
         {ses.banner && ep.loggedOnUser && (
-          <div className="absolute top-3 left-1/2 z-[7500] flex max-w-[92%] -translate-x-1/2 items-center gap-2 rounded-[8px] border border-amber-300 bg-amber-50/95 px-3 py-2 text-[12px] text-amber-900 shadow-lg">
+          <div className="absolute bottom-16 left-1/2 z-[7500] flex max-w-[92%] -translate-x-1/2 items-center gap-2 rounded-[8px] border border-amber-300 bg-amber-50/95 px-3 py-2 text-[12px] text-amber-900 shadow-lg">
             <Info size={15} className="shrink-0" />
             <span>
               Benutzer <b>{userName}</b> ist angemeldet – Sitzung wird gespiegelt (Einverständnis eingeholt?)

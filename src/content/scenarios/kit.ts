@@ -4,8 +4,7 @@
 import { A } from '@/core/actions'
 import { effectiveGroupsOf, findUser, primaryComputerOf } from '@/core/ops/ad'
 import { ensureEndpoint, getEndpoint, printServerOk, splitPath } from '@/core/ops/endpoint'
-import type { ScenarioCtx } from '@/core/scenarios/types'
-import type { ActionEntry, Asset, Endpoint, FsNode, Server, Ticket, WinEvent, World } from '@/core/types'
+import type { ActionEntry, Asset, ScenarioCtx, Endpoint, FsNode, Server, Ticket, WinEvent, World } from '@/core/types'
 import { daysAgo, hashString, minutesFromNow, nowIso, uid } from '@/core/util'
 
 /** Hostname des primären Computers eines Benutzers */

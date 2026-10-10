@@ -131,7 +131,7 @@ function Home({ api }: { api: SiteProps['api'] }) {
                 api.navigate(`/telefonbuch?q=${encodeURIComponent(q)}`)
               }}
             >
-              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Kollegen finden (Name, Abteilung …)" className="h-9 min-w-0 flex-1 rounded-md px-3 text-sm text-slate-800 focus:outline-none" />
+              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Kollegen finden (Name, Abteilung …)" className="h-9 min-w-0 flex-1 rounded-md bg-white px-3 text-sm text-slate-800 focus:outline-none" />
               <button type="submit" className="flex h-9 items-center gap-1 rounded-md bg-teal-950/40 px-3 text-sm hover:bg-teal-950/60">
                 <Search size={15} /> Suchen
               </button>

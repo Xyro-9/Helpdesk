@@ -47,8 +47,8 @@ export function normalizeInput(raw: string, shortNames: Set<string>): string {
     if (!u) return searchUrl(s)
     return /^https?:$/.test(u.protocol) ? upgradeScheme(u).href : u.href
   }
-  if (/\s/.test(s)) return searchUrl(s)
   const hostPart = s.split(/[/?#]/)[0]
+  if (/\s/.test(hostPart)) return searchUrl(s)
   const host = hostPart.replace(/:\d+$/, '').toLowerCase()
   const hasPath = s.length > hostPart.length
   const tld = host.includes('.') ? host.split('.').pop()! : ''

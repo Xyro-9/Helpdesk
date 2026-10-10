@@ -91,6 +91,11 @@ export const A = {
   kbUpdated: 'kb.updated',
   kbLinked: 'kb.linked',
   browserVisit: 'browser.visit',
+  phishingSubmitted: 'browser.phishingSubmitted',
+  ssprReset: 'sspr.reset',
+  cloudRiskResolved: 'cloud.riskResolved',
+  cloudMfaRegistered: 'cloud.mfaRegistered',
+  erpLogin: 'erp.login',
 } as const
 
 export type ActionType = (typeof A)[keyof typeof A]

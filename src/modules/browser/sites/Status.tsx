@@ -139,7 +139,7 @@ export function StatusSite({ api }: SiteProps) {
               </div>
               <div className={cx('text-sm', L.cls)}>
                 <span className="font-medium">{L.label}</span>
-                <span className="block text-xs text-slate-600 @xl:inline @xl:pl-2">{s.info}</span>
+                {s.info !== L.label && <span className="block text-xs text-slate-600 @xl:inline @xl:pl-2">{s.info}</span>}
               </div>
             </div>
           )
