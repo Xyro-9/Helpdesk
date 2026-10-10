@@ -7,7 +7,7 @@ import { useStore } from '@/core/store'
 import { useRun } from './parts'
 
 /** Eigene Aktionstypen (noch nicht in core/actions.ts eingetragen) */
-export const AD_GROUP_UPDATED = 'ad.groupUpdated'
+export const AD_GROUP_UPDATED = A.adGroupUpdated
 
 export function useAdActions() {
   const run = useRun()

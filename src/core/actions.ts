@@ -41,6 +41,7 @@ export const A = {
   adGroupAdd: 'ad.groupAdd',
   adGroupRemove: 'ad.groupRemove',
   adGroupCreated: 'ad.groupCreated',
+  adGroupUpdated: 'ad.groupUpdated',
   adComputerReset: 'ad.computerReset',
   adComputerUpdated: 'ad.computerUpdated',
   adBitlockerViewed: 'ad.bitlockerViewed',
