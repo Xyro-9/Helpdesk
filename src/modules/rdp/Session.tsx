@@ -60,7 +60,7 @@ export function Session({ sessionKey, active }: { sessionKey: string; active: bo
   if (!ses) return null
   return (
     <div className="relative h-full w-full overflow-hidden bg-[#0b2447]">
-      {(ses.phase === 'connected' || ses.phase === 'disconnected') && <Desktop sessionKey={sessionKey} host={ses.host} active={active && ses.phase === 'connected'} />}
+      {ses.phase !== 'failed' && <Desktop sessionKey={sessionKey} host={ses.host} active={active && ses.phase === 'connected'} />}
       {ses.phase === 'connecting' && <Connecting host={sessionKey} attempt={ses.attempt} />}
       {ses.phase === 'failed' && ses.error && (
         <Overlay>
