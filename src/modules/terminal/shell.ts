@@ -94,7 +94,7 @@ export function tokenize(s: string): string[] {
       has = true
       continue
     }
-    if ((ch === '{' || ch === '(') && cur === '') {
+    if ((ch === '{' || ch === '(') && (cur === '' || cur === '@')) {
       depth = 1
       cur = ch
       has = true
