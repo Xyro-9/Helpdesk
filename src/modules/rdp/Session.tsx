@@ -150,7 +150,8 @@ function Disconnected({ sessionKey, host, reason, rebootUntil }: { sessionKey: s
           Verbindung getrennt
         </div>
         <p className="mb-2">{reboot ? (wait ? `${host} wird neu gestartet … (ca. ${wait} s)` : `${host} wurde neu gestartet. Sie können sich jetzt erneut verbinden.`) : `Die Remotesitzung mit ${host} wurde getrennt.`}</p>
-        {!reboot && reason && <p className="mb-2 rounded border border-[#eee] bg-[#fafafa] p-2 font-mono text-[11px] whitespace-pre-wrap">{reason}</p>}
+        {!reboot && <p className="mb-1 text-slate-600">Die Verbindung zum Remotecomputer wurde unterbrochen (Netzwerk, Dienst oder Gerät nicht mehr erreichbar).</p>}
+        {!reboot && reason && <Details text={reason} />}
         <div className="mt-4 flex justify-end gap-2">
           <WBtn primary disabled={wait > 0} onClick={() => useRdp.getState().connectStart(sessionKey)}>
             Erneut verbinden

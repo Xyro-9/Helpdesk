@@ -6,7 +6,7 @@ import { A } from '@/core/actions'
 import { findService, startService, stopService, setServiceStartType } from '@/core/ops/endpoint'
 import type { Endpoint, StartType, WinService } from '@/core/types'
 import { cx } from '@/ui'
-import { useDesk, useEp, useEpOps } from '../desk'
+import { useDesk, useEp, useEpOps, useWin } from '../desk'
 import { AppLoading, listCls, MenuBar, ProgressDialog, rowCls, SortTh, StatusBar, ToolBar, ToolBtn, ToolSep, useContextMenu, ContextMenu, WBtn, WDialog, WInput, WSelect, WTabs } from '../ui'
 import { delay, type AppProps } from './types'
 
@@ -77,6 +77,7 @@ function Services({ host, ep }: { host: string; ep: Endpoint }) {
   const [propsOf, setPropsOf] = useState<string | null>(null)
   const act = useServiceActions(host, ep)
   const ctx = useContextMenu<string>()
+  const win = useWin()
 
   const list = useMemo(() => {
     const needle = q.trim().toLowerCase()
@@ -95,7 +96,7 @@ function Services({ host, ep }: { host: string; ep: Endpoint }) {
     <div className="flex h-full flex-col text-[12px]">
       <MenuBar
         menus={[
-          { label: 'Datei', items: [{ label: 'Beenden', onClick: () => {} }] },
+          { label: 'Datei', items: [{ label: 'Beenden', onClick: () => win.close() }] },
           {
             label: 'Aktion',
             items: [

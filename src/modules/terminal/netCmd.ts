@@ -5,7 +5,7 @@ import type { Endpoint, NetAdapter } from '@/core/types'
 import { isServiceRunning, readHosts } from '@/core/ops/endpoint'
 import { activeConfigs, dhcpServerOk, primaryConfig, reach, releaseDhcp, renewDhcp, resolveName, uplinkConfig, ownerOfIp } from '@/core/sim/network'
 import { hashString, isApipa, isValidIp, maskToPrefix, sameSubnet } from '@/core/util'
-import { act, dots, elevationMsg, fmtDT, lowerArgs, optVal, type Env, type Handler } from './shell'
+import { act, dots, fmtDT, lowerArgs, optVal, type Env, type Handler } from './shell'
 
 export function adapterHeader(a: NetAdapter) {
   if (a.kind === 'WLAN') return `Drahtlos-LAN-Adapter ${a.name}:`

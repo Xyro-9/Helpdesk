@@ -72,6 +72,7 @@ export const A = {
   diskChanged: 'endpoint.disk',
   deviceChanged: 'endpoint.device',
   reboot: 'endpoint.reboot',
+  startupChanged: 'endpoint.startup',
   gpupdate: 'endpoint.gpupdate',
   // Infrastruktur
   dhcpChanged: 'infra.dhcp',

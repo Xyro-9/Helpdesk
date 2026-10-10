@@ -362,6 +362,12 @@ function Clock({ offset }: { offset: number }) {
 
 function DialogView({ d, host, onDone }: { d: DlgEntry; host: string; onDone: () => void }) {
   const [val, setVal] = useState(d.kind === 'prompt' ? (d.o.value ?? '') : '')
+  // Kurze Sperre: ein Enter, das den Dialog ausgelöst hat, darf ihn nicht sofort wieder schließen
+  const armed = useRef(false)
+  useEffect(() => {
+    const t = setTimeout(() => (armed.current = true), 300)
+    return () => clearTimeout(t)
+  }, [])
   const box = (title: string, body: React.ReactNode, footer: React.ReactNode, w = 400) => (
     <div className="flex flex-col overflow-hidden rounded-[8px] border border-[#c8c8c8] bg-[#f3f3f3] text-[12px] shadow-[0_12px_40px_rgba(0,0,0,0.3)]" style={{ width: w, maxWidth: '92vw' }}>
       <div className="flex h-8 items-center pl-3 text-slate-800">
@@ -374,6 +380,7 @@ function DialogView({ d, host, onDone }: { d: DlgEntry; host: string; onDone: ()
   if (d.kind === 'msg') {
     const buttons = d.o.buttons ?? ['OK']
     const finish = (b: string) => {
+      if (!armed.current) return
       onDone()
       d.resolve(b)
     }
@@ -393,6 +400,7 @@ function DialogView({ d, host, onDone }: { d: DlgEntry; host: string; onDone: ()
   }
   if (d.kind === 'prompt') {
     const finish = (v: string | null) => {
+      if (!armed.current) return
       onDone()
       d.resolve(v)
     }
@@ -415,6 +423,7 @@ function DialogView({ d, host, onDone }: { d: DlgEntry; host: string; onDone: ()
     )
   }
   const finish = (ok: boolean) => {
+    if (!armed.current) return
     onDone()
     d.resolve(ok)
   }

@@ -4,7 +4,7 @@ import { findComputer, findUser } from '@/core/ops/ad'
 import { getEndpoint, getRegValue, isServiceRunning } from '@/core/ops/endpoint'
 import { primaryConfig, reach } from '@/core/sim/network'
 import type { AdComputer, Endpoint, World } from '@/core/types'
-import { isValidIp } from '@/core/util'
+import { isValidIp, sameSubnet } from '@/core/util'
 import type { ConnError } from './store'
 
 export const isServerComputer = (c: AdComputer) => c.ou.includes('Domain Controllers') || c.ou.includes('OU=Server') || /server/i.test(c.os)
@@ -76,6 +76,11 @@ export function linkCheck(w: World, host: string): ConnError | null {
         : `Ping ${host}: Zeitüberschreitung der Anforderung.${home ? ' (Gerät befindet sich in einem externen Netz – interne Verbindungen nur bei aktiver VPN-Verbindung möglich)' : ''}`,
     )
   }
+  // IP muss zum physischen Netz des Adapters passen (z.B. falsche statische IP → nicht erreichbar)
+  const cfg = primaryConfig(ep)
+  const net = cfg?.adapter.network
+  if (cfg && net && /^\d+\.\d+\.\d+\.0$/.test(net) && !sameSubnet(ip, net, '255.255.255.0'))
+    return unreachable(`Ping ${host}: Zeitüberschreitung der Anforderung. (Die IP-Adresse ${ip} passt nicht zum angeschlossenen Netzwerksegment)`)
   const r = reach(w, tech, ip)
   if (!r.ok) return unreachable(`Ping ${host} [${ip}]: ${r.message ?? 'Zeitüberschreitung der Anforderung.'}`)
   if (!isServiceRunning(ep, 'TermService')) return unreachable(`Port 3389 auf ${host} [${ip}] antwortet nicht. (Dienst "Remotedesktopdienste" nicht gestartet)`)

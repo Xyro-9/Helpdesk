@@ -9,7 +9,7 @@ import type { Endpoint, NetAdapter } from '@/core/types'
 import { isApipa, isValidIp, maskToPrefix, sameSubnet } from '@/core/util'
 import { cx } from '@/ui'
 import { useDesk, useEp, useEpOps } from '../desk'
-import { AppLoading, ContextMenu, Group, ProgressDialog, StatusBar, ToolBar, ToolBtn, useContextMenu, WBtn, WCheck, WDialog, WInput, WRadio, fmtUptime, type MenuItem } from '../ui'
+import { AppLoading, ContextMenu, Group, StatusBar, ToolBar, ToolBtn, useContextMenu, WBtn, WCheck, WDialog, WInput, WRadio, fmtUptime, type MenuItem } from '../ui'
 import { adapterStatus, diagnose, isValidMask, type DiagItem } from './net'
 import { delay, type AppProps } from './types'
 import { useStore } from '@/core/store'
@@ -477,4 +477,3 @@ function ProgressInline({ text }: { text: string }) {
   )
 }
 
-export { ProgressDialog }
