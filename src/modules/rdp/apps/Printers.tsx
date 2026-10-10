@@ -2,7 +2,7 @@
 // Testseite, Druckwarteschlange.
 
 import { Printer, Search } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { A } from '@/core/actions'
 import { connectPrinter, printDocument, printerEffectiveStatus, printServerOk, removePrinter, setDefaultPrinter } from '@/core/ops/endpoint'
 import { useStore } from '@/core/store'
@@ -186,7 +186,7 @@ function PrintQueue({ host, ep, name }: { host: string; ep: Endpoint; name: stri
   const p = ep.printers.find((x) => x.name.toLowerCase() === name.toLowerCase())
   const st = p ? printerEffectiveStatus(world, ep, p) : undefined
   const title = p ? `${shortName(p)}${st && !st.ok ? ` – ${st.status}` : ''}` : name
-  if (win.focused !== undefined) queueMicrotask(() => win.setTitle(title))
+  useEffect(() => win.setTitle(title), [win, title])
   if (!p) return <div className="p-4 text-[12px] text-slate-500">Der Drucker „{name}“ ist nicht mehr vorhanden.</div>
   const cancel = (ids: number[] | 'all') =>
     ops.mutate(
