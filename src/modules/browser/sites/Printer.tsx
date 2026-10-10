@@ -1,7 +1,7 @@
 // Weboberfläche der Netzwerkdrucker (http://10.10.50.x): Status, Auftragsprotokoll, Admin-Einstellungen.
 
 import { CircleCheck, FileText, Gauge, LogIn, LogOut, Network, Power, Printer, RotateCcw, Settings, Trash2, TriangleAlert } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { A } from '@/core/actions'
 import { nextFreeIp } from '@/core/seed/infra'
 import { dhcpServerOk, ownerOfIp } from '@/core/sim/network'
@@ -77,7 +77,7 @@ export function PrinterSite({ api, route }: SiteProps) {
   )
 }
 
-function Box({ title, children, className }: { title: string; children: React.ReactNode; className?: string }) {
+function Box({ title, children, className }: { title: string; children: ReactNode; className?: string }) {
   return (
     <section className={cx('rounded border border-zinc-300 bg-white', className)}>
       <h2 className="border-b border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-zinc-600">{title}</h2>
@@ -249,7 +249,7 @@ function LoginPage({ api, dev, realm }: { api: SiteProps['api']; dev: PrinterDev
   )
 }
 
-type Msg = { tone: 'success' | 'warning' | 'error' | 'info'; text: React.ReactNode } | null
+type Msg = { tone: 'success' | 'warning' | 'error' | 'info'; text: ReactNode } | null
 
 function SettingsPage({ api, dev }: { api: SiteProps['api']; dev: PrinterDevice }) {
   const [dhcp, setDhcp] = useState(dev.dhcp)

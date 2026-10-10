@@ -9,7 +9,7 @@ import { nowIso } from '@/core/util'
 import { Button, Field, Input, Markdown, Modal, Tabs, Textarea } from '@/ui'
 
 /** Eigener Aktionstyp für Bearbeitungen (Vorschlag: in core/actions.ts als A.kbUpdated ergänzen) */
-export const KB_UPDATED = 'kb.updated'
+export const KB_UPDATED = A.kbUpdated
 
 const TEMPLATE = `# Titel des Problems
 

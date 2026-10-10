@@ -86,7 +86,7 @@ export function Notice({ tone = 'info', title, children, className }: { tone?: k
       <Icon size={17} className="mt-0.5 shrink-0" />
       <div className="min-w-0">
         {title && <div className="font-semibold">{title}</div>}
-        {children && <div className={cx(title && 'mt-0.5', 'leading-relaxed')}>{children}</div>}
+        {children && <div className={cx(!!title && 'mt-0.5', 'leading-relaxed')}>{children}</div>}
       </div>
     </div>
   )

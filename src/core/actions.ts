@@ -24,6 +24,8 @@ export const A = {
   callAccepted: 'comm.callAccepted',
   callEnded: 'comm.callEnded',
   callOutgoing: 'comm.callOutgoing',
+  callDeclined: 'comm.callDeclined',
+  mailReportedPhishing: 'mail.reportedPhishing',
   secretShared: 'comm.secretShared', // z.B. Kennwort/BitLocker-Key übermittelt (detail = Kanal)
   remoteConsent: 'comm.remoteConsent', // Einverständnis für Fernzugriff eingeholt
   userInformed: 'comm.userInformed', // Benutzer über Lösung/Status informiert
@@ -85,6 +87,7 @@ export const A = {
   // Wissen
   kbViewed: 'kb.viewed',
   kbCreated: 'kb.created',
+  kbUpdated: 'kb.updated',
   kbLinked: 'kb.linked',
   browserVisit: 'browser.visit',
 } as const

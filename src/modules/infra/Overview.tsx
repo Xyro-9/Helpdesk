@@ -7,7 +7,7 @@ import type { EventLevel, Server, WinEvent } from '@/core/types'
 import { fmtRelative } from '@/core/util'
 import { Badge, Button, Card, Input, Modal, Select, Tabs, cx, tableCls } from '@/ui'
 import { filterEvents, fmtGb, isSvcRunning, pctTone, syncReadiness } from './lib'
-import { EventViewer, Meter, OkBadge, ServiceButtons, ServiceStatusBadge, StatusDot } from './shared'
+import { EventViewer, Meter, ServiceButtons, ServiceStatusBadge, StatusDot } from './shared'
 
 export type InfraTab = 'overview' | 'security' | 'dhcp' | 'dns' | 'files' | 'print' | 'sync' | 'vpn'
 

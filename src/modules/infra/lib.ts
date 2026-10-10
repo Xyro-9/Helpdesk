@@ -298,7 +298,7 @@ export function validateDnsRecord(zone: string, rec: DnsRecord, existing: readon
     case 'CNAME':
     case 'PTR':
     case 'NS':
-      if (!HOST_RE.test(v) || isValidIp(v)) return `Ein ${rec.type}-Eintrag benötigt einen vollqualifizierten Hostnamen (kein IP-Adresse).`
+      if (!HOST_RE.test(v) || isValidIp(v)) return `Ein ${rec.type}-Eintrag benötigt einen vollqualifizierten Hostnamen (keine IP-Adresse).`
       break
     case 'MX':
       if (!/^\d{1,5}\s+\S+$/.test(v)) return 'MX-Format: "<Priorität> <Mailserver>", z. B. "10 mail.musterwerk.example."'
