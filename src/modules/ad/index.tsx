@@ -197,8 +197,8 @@ export function AdView() {
         </div>
 
         {/* Toolbar */}
-        <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 bg-white px-4 py-2">
-          <div className="relative w-80 max-w-full">
+        <div className="flex h-[3.25rem] shrink-0 flex-nowrap items-center gap-2 border-b border-slate-200 bg-white px-4">
+          <div className="relative w-80 min-w-56 shrink">
             <Search size={15} className="absolute top-2.5 left-2.5 text-slate-400" />
             <Input
               className="pr-8 pl-8"
@@ -239,7 +239,7 @@ export function AdView() {
           </Button>
           <div className="mx-1 h-6 w-px bg-slate-200" />
           {sel && sel.kind !== 'ou' ? (
-            <div className="flex flex-wrap items-center gap-1">
+            <div className="flex shrink-0 items-center gap-1">
               <span className="mr-1 flex items-center gap-1.5 text-sm text-slate-600">
                 <ObjIcon kind={sel.kind} variant={sel.variant} disabled={sel.disabled} locked={sel.locked} size={14} />
                 <span className="max-w-40 truncate font-medium">{sel.name}</span>
@@ -273,7 +273,7 @@ export function AdView() {
               </IconButton>
             </div>
           ) : (
-            <span className="text-xs text-slate-400">Objekt auswählen – Rechtsklick für Aktionen, Doppelklick für Eigenschaften</span>
+            <span className="min-w-0 truncate text-xs text-slate-400">Rechtsklick: Aktionen · Doppelklick: Eigenschaften</span>
           )}
         </div>
 
