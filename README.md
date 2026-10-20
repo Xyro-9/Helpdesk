@@ -11,8 +11,8 @@ ohne Server und ohne echte Firmendaten: Alle Personen, Systeme und Adressen der 
 - **Remote-Desktop** auf simulierte Windows-11-Clients mit Terminal (cmd/PowerShell), Dienste, Ereignisanzeige, Registry, Datenträgerverwaltung, Geräte-Manager, Task-Manager, Netzwerkeinstellungen, Drucker, Explorer, Editor
 - **Webbrowser** mit Intranet, Cloud Admin Center (Lizenzen, MFA, Postfächer, Anmeldeprotokolle), Drucker-Weboberflächen, Kennwort-Portal
 - **Infrastruktur**: Server, DHCP, DNS, Dateifreigaben, Druckserver, Cloud-Sync, DC-Sicherheitsprotokoll
-- **Inventar & Versand**, **Wissensdatenbank**
-- **Trainingsszenarien** mit automatischer Bewertung (Technik, Dokumentation, Kommunikation, Prozess), Tipps und Musterlösung
+- **Inventar & Versand**, **Wissensdatenbank** mit 31 Artikeln
+- **28 Trainingsszenarien** (11 mit Anruf, 3 Schwierigkeitsstufen) mit automatischer Bewertung (Technik, Dokumentation, Kommunikation, Prozess), Tipps und Musterlösung
 - **Trainer-Modus**: eigene Szenarien zusammenstellen, Ergebnisse auswerten, Export/Import
 
 ## Starten
