@@ -12,9 +12,13 @@ import { CallTimer } from './parts'
 import { playRing } from './speech'
 import { useCommsUi } from './store'
 
+/** Höchstens so viele klingelnde Anrufe einblenden, damit die Arbeitsfläche frei bleibt */
+const MAX_RINGING = 2
+
 export function CallOverlay() {
   const calls = useStore((s) => s.world.calls)
   const view = useStore((s) => s.ui.view)
+  const navigate = useStore((s) => s.navigate)
   const muted = useCommsUi((s) => s.ringMuted)
   const ringing = useMemo(() => calls.filter((c) => c.state === 'klingelt'), [calls])
   const live = useMemo(() => calls.filter((c) => c.state === 'aktiv' || c.state === 'gehalten'), [calls])
@@ -35,9 +39,18 @@ export function CallOverlay() {
   return (
     <div className="pointer-events-none fixed right-4 bottom-4 z-40 flex w-[23rem] max-w-[calc(100vw-2rem)] flex-col gap-2">
       {showRinging &&
-        ringing.map((c) => (
+        ringing.slice(0, MAX_RINGING).map((c) => (
           <RingingCall key={c.id} call={c} floating />
         ))}
+      {showRinging && ringing.length > MAX_RINGING && (
+        <button
+          type="button"
+          onClick={() => navigate('phone')}
+          className="pointer-events-auto rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white shadow-lg hover:bg-emerald-700"
+        >
+          + {ringing.length - MAX_RINGING} weitere Anrufe – im Telefon anzeigen
+        </button>
+      )}
       {showLive && <LivePanel live={live} />}
     </div>
   )
