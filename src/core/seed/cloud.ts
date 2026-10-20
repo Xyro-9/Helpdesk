@@ -5,7 +5,7 @@ import { daysAgo, hashString, rng, uid } from '../util'
 
 export const SKUS: LicenseSku[] = [
   { id: 'CO_STANDARD', name: 'Cloud Office Standard', total: 30, services: ['E-Mail (50 GB)', 'Office-Apps', 'Chat & Besprechungen', 'Cloud-Speicher 1 TB'] },
-  { id: 'CO_PREMIUM', name: 'Cloud Office Premium', total: 14, services: ['E-Mail (100 GB)', 'Office-Apps', 'Chat & Besprechungen', 'Cloud-Speicher 1 TB', 'Geräteverwaltung', 'Erweiterter Bedrohungsschutz', 'Bedingter Zugriff'] },
+  { id: 'CO_PREMIUM', name: 'Cloud Office Premium', total: 20, services: ['E-Mail (100 GB)', 'Office-Apps', 'Chat & Besprechungen', 'Cloud-Speicher 1 TB', 'Geräteverwaltung', 'Erweiterter Bedrohungsschutz', 'Bedingter Zugriff'] },
   { id: 'CO_FRONTLINE', name: 'Cloud Office Frontline', total: 8, services: ['E-Mail (2 GB)', 'Office im Browser', 'Chat'] },
   { id: 'CO_VISIO', name: 'Diagramm-Plan 2', total: 3, services: ['Diagramm-App'] },
 ]

@@ -271,7 +271,7 @@ export function evaluateTicket(w: World, t: Ticket, s: Scenario): ScoreResult {
 
   // 3) Kommunikation (15)
   const commItems: ScoreItem[] = []
-  const informed = t.comments.length > 0 || log.some((a) => [A.mailSent, A.chatSent, A.userInformed].includes(a.type as never)) || log.some((a) => a.type === A.callAccepted)
+  const informed = t.comments.length > 0 || log.some((a) => [A.mailSent, A.chatSent, A.userInformed, A.callOutgoing].includes(a.type as never)) || log.some((a) => a.type === A.callAccepted)
   commItems.push({ label: 'Benutzer informiert / Kontakt aufgenommen', ok: informed, points: informed ? 5 : 0, max: 5, hint: 'Antworte dem Benutzer (Ticket-Kommentar, Mail, Chat oder Anruf).' })
   const confirmed = log.some((a) => a.type === A.confirmAsked)
   commItems.push({ label: 'Lösung beim Benutzer bestätigen lassen', ok: confirmed, points: confirmed ? 5 : 0, max: 5, hint: 'Frage nach: "Funktioniert es jetzt wieder?"' })

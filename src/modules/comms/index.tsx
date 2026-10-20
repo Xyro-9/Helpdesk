@@ -1,14 +1,7 @@
-// Platzhalter – wird durch das Modul ersetzt
-import { Placeholder } from '@/layout/Placeholder'
+// Kommunikationsmodul: E-Mail, Chat, Telefon (+ CallOverlay in ./overlay)
+// Exportiert zusätzlich Funktionen für andere Module (z. B. Ticket-Modul: Anrufen, Mail an Benutzer).
 
-export function MailView() {
-  return <Placeholder title="E-Mail" />
-}
-
-export function ChatView() {
-  return <Placeholder title="Chat" />
-}
-
-export function PhoneView() {
-  return <Placeholder title="Telefon" />
-}
+export { ChatView } from './chat'
+export { MailView } from './mail'
+export { PhoneView } from './phone'
+export { fileSentMail, sendMail, startChat, startOutgoingCall, type OutgoingMail } from './logic'

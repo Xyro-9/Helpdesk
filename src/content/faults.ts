@@ -1,10 +1,12 @@
 // Fehlerbibliothek: wiederverwendbare Bausteine (Fehler einbauen + Prüfung),
 // aus denen der Trainer-Modus eigene Szenarien zusammenklickt.
 
-import { addGroupMember, findUser, isMemberOf, lockUser, primaryComputerOf, removeGroupMember } from '@/core/ops/ad'
+import { addGroupMember, findComputer, findUser, isMemberOf, lockUser, primaryComputerOf, removeGroupMember } from '@/core/ops/ad'
 import { findCloudUser } from '@/core/ops/cloud'
-import { ensureEndpoint, findService, getEndpoint, isServiceRunning } from '@/core/ops/endpoint'
-import { connectivity } from '@/core/sim/network'
+import { addEvent, cpuTotal, ensureEndpoint, findService, freeGb, getEndpoint, getProxySettings, getRegValue, HOSTS_PATH, isServiceRunning, isStartupActive, nextPid, readFile, readHosts, refreshToken, setProxySettings, setRegValue, writeFile } from '@/core/ops/endpoint'
+import { DEFAULT_HOSTS } from '@/core/seed/endpoints'
+import { connectivity, httpRequest } from '@/core/sim/network'
+import { putFile } from '@/content/scenarios/kit'
 import type { CustomScenarioDef, Scenario, ScenarioCheck } from '@/core/scenarios/types'
 import type { World } from '@/core/types'
 
@@ -14,6 +16,8 @@ export interface FaultParam {
   kind: 'user' | 'computer' | 'group' | 'service' | 'text' | 'sku'
   /** Standard: Computer/Benutzer des Anfragenden */
   optional?: boolean
+  /** Beispiel-/Standardwert für das Eingabefeld (wird verwendet, wenn leer) */
+  placeholder?: string
 }
 
 export interface FaultDef {
@@ -190,6 +194,297 @@ export const FAULTS: FaultDef[] = [
     params: [{ name: 'user', label: 'Benutzer', kind: 'user', optional: true }],
     apply: () => {},
     checks: (p, r) => [{ id: 'mfa', label: 'MFA-Registrierung zurückgesetzt', points: 10, test: (w) => !!findCloudUser(w, p.user || r)?.mfa.requireReRegister }],
+  },
+  {
+    type: 'hosts-entry',
+    label: 'hosts-Eintrag manipuliert',
+    description: 'Ein Hostname wird per hosts-Datei auf eine fremde IP umgeleitet (Seite "sieht komisch aus").',
+    params: [
+      { name: 'computer', label: 'Computer', kind: 'computer', optional: true },
+      { name: 'host', label: 'Hostname', kind: 'text', optional: true, placeholder: 'intranet.musterwerk.local' },
+      { name: 'ip', label: 'Falsche IP', kind: 'text', optional: true, placeholder: '203.0.113.66' },
+    ],
+    apply: (w, p, r) => {
+      const e = ep(w, pcOf(w, p, r))
+      if (!e) return
+      const host = (p.host || 'intranet.musterwerk.local').toLowerCase()
+      const ip = p.ip || '203.0.113.66'
+      writeFile(e, HOSTS_PATH, `${readFile(e, HOSTS_PATH) ?? DEFAULT_HOSTS}\n${ip}    ${host}\n`)
+      e.dnsCache[host] = ip
+    },
+    checks: (p, r) => [
+      {
+        id: 'hosts',
+        label: `Umleitung von ${p.host || 'intranet.musterwerk.local'} entfernt`,
+        points: 10,
+        test: (w) => {
+          const e = getEndpoint(w, pcOf(w, p, r))
+          const host = (p.host || 'intranet.musterwerk.local').toLowerCase()
+          if (!e) return false
+          const res = httpRequest(w, e, `http://${host}`)
+          return !readHosts(e)[host] && res.ok && !res.spoofed
+        },
+      },
+    ],
+  },
+  {
+    type: 'proxy-wrong',
+    label: 'Falscher Proxy eingetragen',
+    description: 'Im Benutzerprofil ist ein nicht erreichbarer Proxy aktiv → Internet geht nicht, Intranet schon.',
+    params: [
+      { name: 'computer', label: 'Computer', kind: 'computer', optional: true },
+      { name: 'server', label: 'Proxy (Host:Port)', kind: 'text', optional: true, placeholder: 'proxy.hotel-wlan.example:3128' },
+    ],
+    apply: (w, p, r) => {
+      const e = ep(w, pcOf(w, p, r))
+      if (e) setProxySettings(e, { enabled: true, server: p.server || 'proxy.hotel-wlan.example:3128', bypass: '<local>' })
+    },
+    checks: (p, r) => [
+      {
+        id: 'internet',
+        label: 'Internet wieder erreichbar (Proxy korrigiert)',
+        points: 10,
+        test: (w) => {
+          const e = getEndpoint(w, pcOf(w, p, r))
+          return !!e && connectivity(w, e).internet && !getProxySettings(e).server.includes(p.server || 'hotel-wlan')
+        },
+      },
+    ],
+  },
+  {
+    type: 'time-offset',
+    label: 'Zeitabweichung (W32Time deaktiviert)',
+    description: 'Die Uhr des Clients weicht ab, der Windows-Zeitgeber ist deaktiviert → Kerberos-/VPN-Fehler.',
+    params: [
+      { name: 'computer', label: 'Computer', kind: 'computer', optional: true },
+      { name: 'minutes', label: 'Abweichung in Minuten', kind: 'text', optional: true, placeholder: '12' },
+    ],
+    apply: (w, p, r) => {
+      const e = ep(w, pcOf(w, p, r))
+      if (!e) return
+      e.timeOffsetMin = Number(p.minutes) || 12
+      const t = findService(e.services, 'W32Time')
+      if (t) {
+        t.status = 'Beendet'
+        t.startType = 'Deaktiviert'
+      }
+      addEvent(e, { log: 'System', eventId: 4, level: 'Fehler', source: 'Microsoft-Windows-Security-Kerberos', message: 'Der Kerberos-Client hat einen KRB_AP_ERR_SKEW-Fehler empfangen. Die Uhrzeit des Clients weicht um mehr als 5 Minuten ab.' })
+    },
+    checks: (p, r) => [
+      {
+        id: 'time',
+        label: 'Uhrzeit synchron und Zeitgeber aktiv',
+        points: 10,
+        test: (w) => {
+          const e = getEndpoint(w, pcOf(w, p, r))
+          const t = e ? findService(e.services, 'W32Time') : undefined
+          return !!e && Math.abs(e.timeOffsetMin) < 2 && !!t && t.status === 'Wird ausgeführt' && t.startType !== 'Deaktiviert'
+        },
+      },
+    ],
+  },
+  {
+    type: 'device-disabled',
+    label: 'Gerät im Geräte-Manager deaktiviert',
+    description: 'Ein Gerät (z. B. Kamera, Audio) wird deaktiviert (Code 22).',
+    params: [
+      { name: 'computer', label: 'Computer', kind: 'computer', optional: true },
+      { name: 'category', label: 'Gerätekategorie', kind: 'text', optional: true, placeholder: 'Kameras' },
+    ],
+    apply: (w, p, r) => {
+      const e = ep(w, pcOf(w, p, r))
+      const cat = (p.category || 'Kameras').toLowerCase()
+      const d = e?.devices.find((x) => x.category.toLowerCase().startsWith(cat)) ?? e?.devices.find((x) => x.category.toLowerCase().includes('audio'))
+      if (d) {
+        d.status = 'Deaktiviert'
+        d.errorCode = 22
+      }
+    },
+    checks: (p, r) => [
+      {
+        id: 'device',
+        label: `Gerät (${p.category || 'Kameras'}) wieder aktiviert`,
+        points: 10,
+        test: (w) => {
+          const e = getEndpoint(w, pcOf(w, p, r))
+          return !!e && !e.devices.some((d) => d.status === 'Deaktiviert')
+        },
+      },
+    ],
+  },
+  {
+    type: 'disk-full',
+    label: 'Laufwerk C: voll',
+    description: 'Große temporäre Dateien füllen C: (unter 1 GB frei).',
+    params: [{ name: 'computer', label: 'Computer', kind: 'computer', optional: true }],
+    apply: (w, p, r) => {
+      const e = ep(w, pcOf(w, p, r))
+      if (!e) return
+      const user = e.loggedOnUser ?? 'administrator'
+      for (let i = 1; i <= 4; i++) putFile(e, `C:\\Users\\${user}\\AppData\\Local\\Temp\\Cache_${i}`, `daten_${i}.tmp`, 3000)
+      const c = e.disks.flatMap((d) => d.partitions).find((x) => x.letter === 'C')
+      if (c) c.usedGb = Math.round((c.sizeGb - 0.7) * 10) / 10
+    },
+    checks: (p, r) => [{ id: 'space', label: 'Mindestens 10 GB frei auf C:', points: 10, test: (w) => { const e = getEndpoint(w, pcOf(w, p, r)); return !!e && freeGb(e, 'C:') >= 10 } }],
+  },
+  {
+    type: 'cpu-hog-autostart',
+    label: 'Prozess mit Dauerlast im Autostart',
+    description: 'Ein unerwünschtes Programm erzeugt ~90 % CPU und steht im Autostart.',
+    params: [
+      { name: 'computer', label: 'Computer', kind: 'computer', optional: true },
+      { name: 'exe', label: 'Programmname', kind: 'text', optional: true, placeholder: 'TurboHelper.exe' },
+    ],
+    apply: (w, p, r) => {
+      const e = ep(w, pcOf(w, p, r))
+      if (!e) return
+      const exe = p.exe || 'TurboHelper.exe'
+      const name = exe.replace(/\.exe$/i, '')
+      const cmd = `"C:\\Users\\${e.loggedOnUser ?? 'administrator'}\\AppData\\Roaming\\${name}\\${exe}"`
+      e.processes.push({ pid: nextPid(e), name: exe, description: name, user: e.loggedOnUser ?? 'administrator', cpu: 90, memMb: 900 })
+      e.startupApps.push({ name, publisher: 'Unbekannt', command: cmd, enabled: true, impact: 'Hoch' })
+      setRegValue(e, 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run', name, 'REG_SZ', cmd)
+      e.flags[`cpu:${exe.toLowerCase()}`] = '90'
+    },
+    checks: (p, r) => [
+      {
+        id: 'cpu',
+        label: 'Prozess beendet und Autostart deaktiviert',
+        points: 10,
+        test: (w) => {
+          const e = getEndpoint(w, pcOf(w, p, r))
+          const exe = p.exe || 'TurboHelper.exe'
+          return !!e && cpuTotal(e) < 40 && !isStartupActive(e, exe.replace(/\.exe$/i, ''))
+        },
+      },
+    ],
+  },
+  {
+    type: 'print-queue-paused',
+    label: 'Druckwarteschlange auf PRINT01 angehalten',
+    description: 'Eine Warteschlange auf dem Druckserver wurde angehalten – Aufträge bleiben liegen.',
+    params: [{ name: 'queue', label: 'Warteschlange', kind: 'text', optional: true, placeholder: '1OG-SW' }],
+    apply: (w, p) => {
+      const q = w.infra.printQueues.find((x) => x.name.toLowerCase() === (p.queue || '1OG-SW').toLowerCase())
+      if (q) q.status = 'Angehalten'
+    },
+    checks: (p) => [{ id: 'queue', label: `Warteschlange ${p.queue || '1OG-SW'} fortgesetzt`, points: 10, test: (w) => w.infra.printQueues.find((x) => x.name.toLowerCase() === (p.queue || '1OG-SW').toLowerCase())?.status === 'Bereit' }],
+  },
+  {
+    type: 'printer-device-fault',
+    label: 'Druckergerät gestört (Vor-Ort-Fall)',
+    description: 'Ein Netzwerkdrucker meldet einen physischen Fehler (Papierstau/Toner). Erwartet wird die Eskalation an den Vor-Ort-Service.',
+    params: [
+      { name: 'printer', label: 'Geräte-ID', kind: 'text', optional: true, placeholder: 'PRN-1OG-SW' },
+      { name: 'status', label: 'Status (Papierstau / Toner leer)', kind: 'text', optional: true, placeholder: 'Papierstau' },
+    ],
+    apply: (w, p) => {
+      const d = w.infra.printers.find((x) => x.id.toLowerCase() === (p.printer || 'PRN-1OG-SW').toLowerCase())
+      if (!d) return
+      d.status = p.status === 'Toner leer' ? 'Toner leer' : 'Papierstau'
+      d.statusDetail = d.status === 'Papierstau' ? 'Papierstau in Fach 2 / Transportweg – Techniker erforderlich.' : 'Tonerkassette schwarz leer – Austausch vor Ort.'
+      if (d.status === 'Toner leer') d.toner.black = 0
+    },
+    checks: () => [{ id: 'escalated', label: 'An den Vor-Ort-Service eskaliert', points: 10, test: (w, ctx) => w.tickets.find((t) => t.id === ctx.ticketId)?.assignmentGroup === 'Vor-Ort-Service' }],
+  },
+  {
+    type: 'vpn-group-missing',
+    label: 'VPN-Berechtigung fehlt',
+    description: 'Benutzer wird aus GG_VPN_Benutzer entfernt → VPN meldet "Zugriff verweigert (691)".',
+    params: [{ name: 'user', label: 'Benutzer', kind: 'user', optional: true }],
+    apply: (w, p, r) => {
+      const sam = p.user || r
+      const g = w.groups.find((x) => x.name === w.infra.vpnGateway.allowedGroup)
+      if (g) g.members = g.members.filter((m) => m !== sam)
+      const pc = primaryComputerOf(w, sam)
+      const e = pc ? ep(w, pc.name) : undefined
+      if (e?.vpn.installed) {
+        e.vpn.connected = false
+        e.vpn.lastError = 'Zugriff verweigert: Benutzer ist nicht für den VPN-Zugang berechtigt (Fehler 691/Policy "MW-VPN").'
+        refreshToken(w, e)
+      }
+    },
+    checks: (p, r) => [{ id: 'vpn', label: 'Benutzer in GG_VPN_Benutzer', points: 10, test: (w) => isMemberOf(w, p.user || r, w.infra.vpnGateway.allowedGroup) }],
+  },
+  {
+    type: 'mailbox-access-missing',
+    label: 'Postfach-Vollzugriff fehlt',
+    description: 'Der Vollzugriff des Benutzers auf ein (Team-)Postfach wird entfernt.',
+    params: [
+      { name: 'user', label: 'Benutzer', kind: 'user', optional: true },
+      { name: 'mailbox', label: 'Postfach (Adresse)', kind: 'text', optional: true, placeholder: 'kundenservice@musterwerk.example' },
+    ],
+    apply: (w, p, r) => {
+      const mb = findCloudUser(w, p.mailbox || 'kundenservice@musterwerk.example')?.mailbox
+      const upn = findCloudUser(w, p.user || r)?.upn.toLowerCase()
+      if (mb && upn) mb.fullAccess = mb.fullAccess.filter((x) => x.toLowerCase() !== upn)
+    },
+    checks: (p, r) => [
+      {
+        id: 'mbx',
+        label: `Vollzugriff auf ${p.mailbox || 'kundenservice@musterwerk.example'}`,
+        points: 10,
+        test: (w) => {
+          const mb = findCloudUser(w, p.mailbox || 'kundenservice@musterwerk.example')?.mailbox
+          const upn = findCloudUser(w, p.user || r)?.upn.toLowerCase()
+          return !!mb && !!upn && mb.fullAccess.some((x) => x.toLowerCase() === upn)
+        },
+      },
+    ],
+  },
+  {
+    type: 'secure-channel-broken',
+    label: 'Vertrauensstellung defekt',
+    description: 'Das Computerkonto-Kennwort passt nicht mehr – Domänenanmeldung schlägt fehl.',
+    params: [{ name: 'computer', label: 'Computer', kind: 'computer', optional: true }],
+    apply: (w, p, r) => {
+      const c = findComputer(w, pcOf(w, p, r))
+      if (c) c.secureChannelBroken = true
+    },
+    checks: (p, r) => [{ id: 'trust', label: 'Vertrauensstellung repariert', points: 10, test: (w) => { const c = findComputer(w, pcOf(w, p, r)); return !!c && !c.secureChannelBroken } }],
+  },
+  {
+    type: 'disk-uninitialized',
+    label: 'Neuer Datenträger nicht initialisiert',
+    description: 'Eine zusätzliche Festplatte ist eingebaut, aber nicht initialisiert und ohne Laufwerksbuchstaben.',
+    params: [{ name: 'computer', label: 'Computer', kind: 'computer', optional: true }],
+    apply: (w, p, r) => {
+      const e = ep(w, pcOf(w, p, r))
+      if (!e || e.disks.some((d) => d.number === 1)) return
+      e.disks.push({ number: 1, model: 'Seagate BarraCuda 1TB', sizeGb: 931, kind: 'HDD', status: 'Nicht initialisiert', partitionStyle: 'Unbekannt', smart: 'OK', partitions: [{ id: 'd1-free', type: 'Nicht zugeordnet', sizeGb: 931, usedGb: 0, health: 'Unbekannt' }] })
+    },
+    checks: (p, r) => [
+      {
+        id: 'disk',
+        label: 'Datenträger 1 initialisiert, formatiert und mit Laufwerksbuchstaben',
+        points: 10,
+        test: (w) => {
+          const d = getEndpoint(w, pcOf(w, p, r))?.disks.find((x) => x.number === 1)
+          return !!d && d.status === 'Online' && d.partitionStyle !== 'Unbekannt' && d.partitions.some((x) => !!x.letter && x.fs === 'NTFS')
+        },
+      },
+    ],
+  },
+  {
+    type: 'usb-storage-blocked',
+    label: 'USB-Speicher per Richtlinie gesperrt',
+    description: 'USBSTOR Start=4. Nur mit Freigabe (z. B. Mail der Informationssicherheit) ändern – sonst ist die Erwartung "Richtlinie erklären/eskalieren".',
+    params: [{ name: 'computer', label: 'Computer', kind: 'computer', optional: true }],
+    apply: (w, p, r) => {
+      const e = ep(w, pcOf(w, p, r))
+      if (e) setRegValue(e, 'HKLM\\SYSTEM\\CurrentControlSet\\Services\\USBSTOR', 'Start', 'REG_DWORD', 4)
+    },
+    checks: (p, r) => [
+      {
+        id: 'usb',
+        label: 'USB-Speicher freigegeben (nur mit Freigabe!)',
+        points: 10,
+        test: (w) => {
+          const e = getEndpoint(w, pcOf(w, p, r))
+          return !!e && Number(getRegValue(e, 'HKLM\\SYSTEM\\CurrentControlSet\\Services\\USBSTOR', 'Start')?.data ?? 4) === 3
+        },
+      },
+    ],
   },
 ]
 

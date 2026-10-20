@@ -186,6 +186,7 @@ export function buildDnsZones(computers: AdComputer[], ipOf: (name: string) => s
     const ip = ipOf(c.name)
     if (ip) local.records.push({ name: c.name.toLowerCase(), type: 'A', value: ip, ttl: 1200, dynamic: !c.name.match(/^(DC|FS|PRINT|APP|SYNC)/) })
   }
+  for (const p of buildPrinters().devices) local.records.push({ name: p.hostname, type: 'A', value: p.ip, ttl: 3600 })
   const rev: DnsZone = { name: '10.10.in-addr.arpa', type: 'AD-integriert', records: [] }
   return [local, rev, { name: 'musterwerk.example', type: 'Weiterleitung', records: [{ name: '@', type: 'NS', value: 'Weiterleitung an externe DNS (Provider)', ttl: 3600 }] }]
 }

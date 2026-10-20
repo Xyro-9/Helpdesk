@@ -24,6 +24,8 @@ export const A = {
   callAccepted: 'comm.callAccepted',
   callEnded: 'comm.callEnded',
   callOutgoing: 'comm.callOutgoing',
+  callDeclined: 'comm.callDeclined',
+  mailReportedPhishing: 'mail.reportedPhishing',
   secretShared: 'comm.secretShared', // z.B. Kennwort/BitLocker-Key übermittelt (detail = Kanal)
   remoteConsent: 'comm.remoteConsent', // Einverständnis für Fernzugriff eingeholt
   userInformed: 'comm.userInformed', // Benutzer über Lösung/Status informiert
@@ -39,6 +41,7 @@ export const A = {
   adGroupAdd: 'ad.groupAdd',
   adGroupRemove: 'ad.groupRemove',
   adGroupCreated: 'ad.groupCreated',
+  adGroupUpdated: 'ad.groupUpdated',
   adComputerReset: 'ad.computerReset',
   adComputerUpdated: 'ad.computerUpdated',
   adBitlockerViewed: 'ad.bitlockerViewed',
@@ -69,6 +72,7 @@ export const A = {
   diskChanged: 'endpoint.disk',
   deviceChanged: 'endpoint.device',
   reboot: 'endpoint.reboot',
+  startupChanged: 'endpoint.startup',
   gpupdate: 'endpoint.gpupdate',
   // Infrastruktur
   dhcpChanged: 'infra.dhcp',
@@ -85,8 +89,14 @@ export const A = {
   // Wissen
   kbViewed: 'kb.viewed',
   kbCreated: 'kb.created',
+  kbUpdated: 'kb.updated',
   kbLinked: 'kb.linked',
   browserVisit: 'browser.visit',
+  phishingSubmitted: 'browser.phishingSubmitted',
+  ssprReset: 'sspr.reset',
+  cloudRiskResolved: 'cloud.riskResolved',
+  cloudMfaRegistered: 'cloud.mfaRegistered',
+  erpLogin: 'erp.login',
 } as const
 
 export type ActionType = (typeof A)[keyof typeof A]

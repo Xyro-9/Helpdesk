@@ -6,6 +6,7 @@ import { daysAgo, nowIso, uid } from '../util'
 import { buildEndpoint } from '../seed/endpoints'
 import { nextFreeIp } from '../seed/infra'
 import { effectiveGroupsOf, findComputer, findUser } from './ad'
+import { reach, resolveName } from '../sim/network'
 
 // ─────────────── Endpunkt materialisieren ───────────────
 
@@ -455,6 +456,9 @@ export function shareAccess(w: World, ep: Endpoint, uncPath: string): { ok: bool
   if (!isServiceRunning(ep, 'LanmanWorkstation')) return { ok: false, error: 'Systemfehler 2138: Das Netzwerk ist nicht vorhanden oder wurde nicht gestartet. (Arbeitsstationsdienst beendet)' }
   const server = w.infra.servers.find((s) => s.name === u.server)
   if (!server || !server.online) return { ok: false, error: 'Systemfehler 53: Der Netzwerkpfad wurde nicht gefunden.' }
+  // Server muss vom Client aus auflösbar (hosts/DNS) und erreichbar sein
+  const r = resolveName(w, ep, u.server)
+  if (!r.ok || r.ip !== server.ip || !reach(w, ep, server.ip).ok) return { ok: false, error: 'Systemfehler 53: Der Netzwerkpfad wurde nicht gefunden.' }
   const share = w.infra.shares.find((s) => s.server === u.server && s.name.toLowerCase() === u.share.toLowerCase())
   if (!share) return { ok: false, error: 'Systemfehler 67: Der Netzwerkname wurde nicht gefunden.' }
   const user = ep.loggedOnUser

@@ -69,7 +69,7 @@ export const lockoutPhone: Scenario = {
     'Ursache: Smartphone versucht sich mit dem alten Kennwort anzumelden → Benutzerin bitten, das Kennwort im Mail-Konto des Handys zu aktualisieren.',
     'Bestätigen lassen, dass die Anmeldung funktioniert, dokumentieren und mit "Gelöst (dauerhaft)" schließen.',
   ],
-  kb: ['KB0001'],
+  kb: ['KB0001', 'KB0002'],
 }
 
 /** E-Mail: Drucken geht nicht, weil der Spooler-Dienst beendet und deaktiviert ist */
@@ -118,9 +118,12 @@ export const spoolerMail: Scenario = {
     facts: [
       { keywords: ['installiert', 'programm', 'software', 'tool', 'aufgeräumt', 'aufgeraeumt', 'verändert', 'veraendert', 'gestern'], answer: 'Ach, gestern habe ich so ein Programm "PC-Turbo Cleaner" laufen lassen, das hat mir ein Bekannter empfohlen, damit der Rechner schneller wird …' },
       { keywords: ['drucker', 'welcher'], answer: 'Normalerweise drucke ich immer auf dem 1OG-Farbe im Kopierraum.' },
+      { keywords: ['neu gestartet', 'neustart'], answer: 'Neu gestartet habe ich heute früh schon – danach war es genauso.' },
+      { keywords: ['kollegin', 'andere', 'nebenan'], answer: 'Herr Schwarz am Nachbarplatz kann ganz normal auf dem 1OG-Farbe drucken.' },
     ],
     resolvedReply: 'Ja, der Drucker ist wieder da und die Bestellungen kommen raus. Danke!',
     unresolvedReply: 'Nein, der Drucker ist immer noch nicht da.',
+    persona: 'Katrin ist gestresst, weil Bestellungen raus müssen. Sie hat gestern ein "Tuning-Tool" installiert, erwähnt das aber nur auf Nachfrage.',
   },
   extraMails: () => [],
   hints: [
@@ -136,7 +139,7 @@ export const spoolerMail: Scenario = {
     'Drucker 1OG-Farbe erscheint wieder (ggf. gpupdate /force), Testseite drucken.',
     'Benutzerin informieren: keine privaten Tuning-Tools installieren. Dokumentieren, schließen.',
   ],
-  kb: [],
+  kb: ['KB0016'],
 }
 
 /** Chat: Intranet und ERP gehen nicht, Internet schon – statischer DNS 8.8.8.8 */
@@ -180,7 +183,9 @@ export const dnsChat: Scenario = {
     facts: [
       { keywords: ['geändert', 'geaendert', 'eingestellt', 'netzwerk', 'einstellung', 'gemacht', 'installiert'], answer: 'Hmm … ich hatte gestern Probleme mit einer Streaming-Seite und hab in einem Forum gelesen, man soll den DNS auf 8.8.8.8 stellen. Hab ich gemacht. Könnte das was damit zu tun haben?' },
       { keywords: ['wlan', 'kabel', 'lan'], answer: 'Ich bin per Kabel im Netz, am Schreibtisch.' },
+      { keywords: ['kollegen', 'andere'], answer: 'Bei Sophie geht das Intranet, ich glaube, es ist nur bei mir.' },
     ],
+    persona: 'Lukas ist Grafikdesigner, locker und experimentierfreudig – er hat selbst an den Netzwerkeinstellungen "optimiert".',
     resolvedReply: 'Läuft wieder! Intranet und ERP sind da. Mega, danke dir!',
     unresolvedReply: 'Nee, Intranet zeigt immer noch "Seite nicht gefunden".',
   },
@@ -196,7 +201,7 @@ export const dnsChat: Scenario = {
     'IPv4-Eigenschaften: DNS automatisch beziehen (oder 10.10.0.10/10.10.0.11), ipconfig /flushdns.',
     'Intranet testen lassen, Benutzer erklären, warum interne Namen nur der interne DNS kennt. Dokumentieren, schließen.',
   ],
-  kb: [],
+  kb: ['KB0010', 'KB0011'],
 }
 
 /** Portal: VPN-Zugang fehlt (Gruppe) – mit Freigabe-Mail des Vorgesetzten */
@@ -233,8 +238,14 @@ export const vpnPortal: Scenario = {
   ],
   caller: {
     intro: 'Hallo, hier Petra Braun aus der Buchhaltung, wegen meines VPN-Antrags.',
-    facts: [{ keywords: ['notebook', 'laptop', 'gerät', 'geraet'], answer: 'Das Notebook soll ich wohl Freitag bei Ihnen abholen, hat Frau Zimmermann gesagt.' }],
+    facts: [
+      { keywords: ['notebook', 'laptop', 'gerät', 'geraet'], answer: 'Das Notebook soll ich wohl Freitag bei Ihnen abholen, hat Frau Zimmermann gesagt.' },
+      { keywords: ['wann', 'ab wann', 'montag'], answer: 'Ab Montag arbeite ich dienstags und donnerstags von zu Hause.' },
+      { keywords: ['installieren', 'programm', 'client'], answer: 'Muss ich da selbst etwas installieren? Ich habe so etwas noch nie gemacht.' },
+    ],
     resolvedReply: 'Prima, dann kann ich Montag loslegen. Danke!',
+    unresolvedReply: 'Ist der Zugang schon freigeschaltet?',
+    persona: 'Petra ist Buchhalterin, freundlich und technisch unerfahren. Sie arbeitet künftig zwei Tage pro Woche im Homeoffice.',
   },
   hints: ['Prüfe im Posteingang, ob die Freigabe der Vorgesetzten vorliegt (Vorgesetzte steht im AD-Feld "Manager").', 'Füge p.braun in der AD-Konsole der Gruppe GG_VPN_Benutzer hinzu.', 'Informiere die Benutzerin über einen Ticket-Kommentar.'],
   solution: [
@@ -244,6 +255,7 @@ export const vpnPortal: Scenario = {
     'Benutzerin per Kommentar informieren (VPN-Client ist auf Firmen-Notebooks vorinstalliert).',
     'Mit "Anfrage erfüllt" schließen.',
   ],
+  kb: ['KB0014'],
 }
 
 export const BASIC_SCENARIOS: Scenario[] = [lockoutPhone, spoolerMail, dnsChat, vpnPortal]

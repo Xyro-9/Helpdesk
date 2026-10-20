@@ -151,7 +151,11 @@ export function ownerOfIp(w: World, ip: string): { kind: 'server' | 'printer' | 
   if (w.infra.networks.some((n) => n.gateway === ip) || ip === '192.168.178.1') return { kind: 'gateway', name: 'Router', up: true }
   if (PUBLIC_DNS.includes(ip)) return { kind: 'dns', name: 'Öffentlicher DNS', up: w.infra.internetUp }
   if (Object.values(INTERNET_HOSTS).includes(ip) || (!ip.startsWith('10.') && !ip.startsWith('192.168.') && !ip.startsWith('169.254.'))) return { kind: 'internet', up: w.infra.internetUp }
-  for (const ep of Object.values(w.endpoints)) if (ep.adapters.some((a) => a.ip === ip && a.enabled && a.mediaConnected)) return { kind: 'endpoint', name: ep.hostname, up: ep.online }
+  for (const ep of Object.values(w.endpoints)) {
+    const a = ep.adapters.find((x) => x.ip === ip && x.enabled && x.mediaConnected)
+    // Gerät gilt nur als erreichbar, wenn seine IP zum physischen Netzsegment passt (falsche statische IP!)
+    if (a) return { kind: 'endpoint', name: ep.hostname, up: ep.online && (!/^\d+\.\d+\.\d+\.0$/.test(a.network) || sameSubnet(ip, a.network, '255.255.255.0')) }
+  }
   for (const s of w.infra.dhcpScopes) {
     const l = s.leases.find((x) => x.ip === ip && x.state !== 'Abgelaufen')
     if (l) return { kind: 'endpoint', name: l.hostname.split('.')[0].toUpperCase(), up: true }
